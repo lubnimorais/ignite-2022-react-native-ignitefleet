@@ -10,11 +10,13 @@ import { theme, ThemeProvider } from './src/theme/stitches.config';
 
 import { REALM_APP_ID } from '@env';
 
+import { Routes } from './src/routes';
+
+import { RealmProvider } from './src/libs/realm';
+
 import { SignInScreen } from './src/screens/SignIn';
 
-
 import { Loading } from './src/components/Loading';
-import { Routes } from './src/routes';
 
 export default function App() {
   const [fontsLoaded] = useFonts(
@@ -39,7 +41,9 @@ export default function App() {
          * SE TIVER UM USUÁRIO LOGADO, ELE REDIRECIONA
          */}
           <UserProvider fallback={<SignInScreen />}>
-            <Routes />
+            <RealmProvider>
+              <Routes />
+            </RealmProvider>
           </UserProvider>
         </SafeAreaProvider>
       </ThemeProvider>
