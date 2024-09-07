@@ -6,7 +6,7 @@ import { Roboto_400Regular, Roboto_700Bold, useFonts } from '@expo-google-fonts/
 
 import { AppProvider, UserProvider } from '@realm/react';
 
-import { theme, ThemeProvider } from './src/theme/stitches.config';
+import { theme, ThemeProvider, useTheme } from './src/theme/stitches.config';
 
 import { REALM_APP_ID } from '@env';
 
@@ -23,6 +23,8 @@ export default function App() {
     { Roboto_400Regular, Roboto_700Bold }
   )
 
+  const themeApp = useTheme()
+
   if (!fontsLoaded) {
     return (
       <Loading />
@@ -33,7 +35,7 @@ export default function App() {
   return (
     <AppProvider id={REALM_APP_ID}>
       <ThemeProvider theme={theme}>
-        <SafeAreaProvider>
+        <SafeAreaProvider style={{ flex: 1, backgroundColor: themeApp.colors.GRAY_800 }}>
           <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
           {/**
