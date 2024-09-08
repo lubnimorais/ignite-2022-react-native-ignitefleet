@@ -1,12 +1,12 @@
 import { ObjectSchema } from 'realm';
 
-import { Realm } from '@realm/react'
+import { Realm } from '@realm/react';
 
 type IGenerateProps = {
   user_id: string;
   description: string;
-  license_plate: string
-}
+  license_plate: string;
+};
 
 export class Historic extends Realm.Object<Historic> {
   // COLOCAMOS EXCLAMAÇÃO PARA DIZER QUE O CAMPO VAI SER UTILIZADO
@@ -26,8 +26,8 @@ export class Historic extends Realm.Object<Historic> {
       license_plate,
       status: 'departure',
       created_at: new Date(),
-      updated_at: new Date()
-    }
+      updated_at: new Date(),
+    };
   }
 
   static schema: ObjectSchema = {
@@ -45,7 +45,7 @@ export class Historic extends Realm.Object<Historic> {
       description: 'string',
       status: 'string',
       created_at: 'date',
-      updated_at: 'date'
-    }
-  }
+      updated_at: 'date',
+    },
+  };
 }
