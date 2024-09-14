@@ -3,6 +3,9 @@ export declare global {
     interface RootParamList {
       homeScreen: undefined;
       departureScreen: undefined;
+      arrivalScreen: {
+        id: string;
+      };
     }
   }
 }
