@@ -42,4 +42,6 @@ export const Footer = styled('View', {
 
   marginTop: 32,
   marginHorizontal: 16,
+
+  padding: 32,
 });

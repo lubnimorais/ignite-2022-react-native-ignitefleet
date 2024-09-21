@@ -16,18 +16,25 @@ import { AppProvider, UserProvider } from '@realm/react';
 
 import { theme, ThemeProvider, useTheme } from './src/theme/stitches.config';
 
+import { WifiSlash } from 'phosphor-react-native';
+
+import { useNetInfo } from '@react-native-community/netinfo';
+
 import { REALM_APP_ID } from '@env';
 
 import { Routes } from './src/routes';
 
-import { RealmProvider } from './src/libs/realm';
+import { RealmProvider, syncConfig } from './src/libs/realm';
 
 import { SignInScreen } from './src/screens/SignIn';
 
 import { Loading } from './src/components/Loading';
+import { TopMessage } from './src/components/TopMessage';
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
+
+  const netInfo = useNetInfo();
 
   const themeApp = useTheme();
 
@@ -47,12 +54,20 @@ export default function App() {
             translucent
           />
 
+          {!netInfo.isConnected && (
+            <TopMessage title="Você está off-line" icon={WifiSlash} />
+          )}
+
           {/**
            * SE NÃO TIVER NENHUM USUÁRIO LOGADO CHAMA A TELA SIGNIN
            * SE TIVER UM USUÁRIO LOGADO, ELE REDIRECIONA
            */}
           <UserProvider fallback={<SignInScreen />}>
-            <RealmProvider>
+            {/* FALLBACK: ENQUANTO ESTÁ NO PROCESSO DE ABRIR
+              O BANCO DE DADOS E COMEÇAR A SINCRONIZAÇÃO
+              MOSTRA O COMPONENTE DE LOADING
+             */}
+            <RealmProvider sync={syncConfig} fallback={Loading}>
               <Routes />
             </RealmProvider>
           </UserProvider>

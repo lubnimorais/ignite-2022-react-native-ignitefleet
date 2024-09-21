@@ -21,7 +21,7 @@ export function HistoricCard({ data, ...rest }: IHistoricCardProps) {
   const theme = useTheme();
 
   return (
-    <HistoricCardContainer {...rest}>
+    <HistoricCardContainer activeOpacity={0.7} {...rest}>
       <Info>
         <LicensePlate>{data.licensePlate}</LicensePlate>
 

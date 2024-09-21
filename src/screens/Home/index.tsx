@@ -6,16 +6,21 @@ import { useNavigation } from '@react-navigation/native';
 
 import dayjs from 'dayjs';
 
-import { useQuery } from '@realm/react';
+import { Realm, useQuery, useUser } from '@realm/react';
 import { useRealm } from '../../libs/realm';
 
 import { Historic } from '../../libs/realm/schemas/Historic';
+
+import {
+  getLastSyncTimestamp,
+  saveLastSyncTimestamp,
+} from '../../libs/asyncStorage/syncStorage';
 
 import { CarStatus } from '../../components/CarStatus';
 import { HomeHeader } from '../../components/HomeHeader';
 import { HistoricCard, IHistoric } from '../../components/HistoricCard';
 
-import { HomeContainer, HomeContent, Label } from './styles';
+import { HomeContainer, HomeContent, Label, Title } from './styles';
 
 export function HomeScreen() {
   const [vehicleInUse, setVehicleInUse] = useState<Historic | null>(null);
@@ -25,7 +30,9 @@ export function HomeScreen() {
 
   const historic = useQuery(Historic);
   const realm = useRealm();
+  const user = useUser();
 
+  // FUNCTIONS
   function handleRegisterMovement() {
     if (vehicleInUse?._id) {
       return navigation.navigate('arrivalScreen', {
@@ -36,17 +43,19 @@ export function HomeScreen() {
     }
   }
 
-  function fetchHistoric() {
+  async function fetchHistoric() {
     try {
       const response = historic.filtered(
         "status = 'arrival' SORT(created_at DESC)",
       );
 
+      const lastSync = await getLastSyncTimestamp();
+
       const formattedHistoric = response.map((item) => {
         return {
           id: item._id.toString(),
           licensePlate: item.license_plate,
-          isSync: false,
+          isSync: lastSync > item.updated_at.getTime(),
           created: dayjs(item.created_at).format(
             '[Saída em] DD/MM/YYYY [às] HH:mm',
           ),
@@ -76,6 +85,24 @@ export function HomeScreen() {
     }
   }, [historic]);
 
+  function handleHistoricDetails(id: string) {
+    navigation.navigate('arrivalScreen', { id });
+  }
+
+  async function progressNotification(
+    transferred: number,
+    transferable: number,
+  ) {
+    const percentage = (transferred / transferable) * 100;
+
+    if (percentage === 100) {
+      await saveLastSyncTimestamp();
+
+      await fetchHistoric();
+    }
+  }
+  // END FUNCTIONS
+
   useEffect(() => {
     fetchVehicleInUse();
   }, [fetchVehicleInUse]);
@@ -83,12 +110,49 @@ export function HomeScreen() {
   useEffect(() => {
     realm.addListener('change', () => fetchVehicleInUse());
 
-    return () => realm.removeListener('change', fetchVehicleInUse);
+    return () => {
+      if (realm && !realm.isClosed) {
+        realm.removeListener('change', fetchVehicleInUse);
+      }
+    };
   }, [realm, fetchVehicleInUse]);
 
   useEffect(() => {
     fetchHistoric();
   }, [historic]);
+
+  useEffect(() => {
+    realm.subscriptions.update((mutableSubs, realm) => {
+      const historicByUserQuery = realm
+        .objects('Historic')
+        .filtered(`user_id = '${user.id}'`);
+
+      mutableSubs.add(historicByUserQuery, { name: 'historic_by_user' });
+    });
+  }, [realm]);
+
+  useEffect(() => {
+    const syncSession = realm.syncSession;
+
+    if (!syncSession) {
+      return;
+    }
+
+    /**
+     * 1 PARÂMETRO: QUAL DIREÇÃO QUE QUEREMOS OBTER (UPLOAD - SABER O 
+     O QUANTO TEM QUE ENVIAR PARA O BANCO DE DADOS)
+     * 2 PARÂMETRO: COMO QUEREMOS REPORTAR ESSA NOTIFICAÇÃO 
+     * 3 PARÂMETRO: FUNÇÃO DE COMO VAI RECEBER ESSA NOTIFICAÇÃO
+    */
+
+    syncSession.addProgressNotification(
+      Realm.ProgressDirection.Upload,
+      Realm.ProgressMode.ReportIndefinitely,
+      progressNotification,
+    );
+
+    return () => syncSession.removeProgressNotification(progressNotification);
+  }, []);
 
   return (
     <HomeContainer>
@@ -99,6 +163,8 @@ export function HomeScreen() {
           licensePlate={vehicleInUse?.license_plate}
           onPress={handleRegisterMovement}
         />
+
+        <Title>Histórico</Title>
 
         <FlatList
           showsVerticalScrollIndicator={false}
@@ -112,6 +178,9 @@ export function HomeScreen() {
                 licensePlate: historic.licensePlate,
                 created: historic.created,
                 isSync: historic.isSync,
+              }}
+              onPress={() => {
+                handleHistoricDetails(historic.id);
               }}
             />
           )}

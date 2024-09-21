@@ -33,11 +33,14 @@ export function ArrivalScreen() {
   const route = useRoute();
   const { id: vehicleId } = route.params as IRouteParamsProps;
 
+  const realm = useRealm();
+
   const historic = useObject(
     Historic,
     new BSON.UUID(vehicleId) as unknown as string,
   );
-  const realm = useRealm();
+
+  const title = historic?.status === 'departure' ? 'Chegada' : 'Detalhes';
 
   function removeVehicleUsage() {
     realm.write(() => {
@@ -88,7 +91,7 @@ export function ArrivalScreen() {
 
   return (
     <ArrivalContainer>
-      <Header title="Chegada" />
+      <Header title={title} />
 
       <ArrivalContent>
         <Label>Placa do veículo</Label>
@@ -98,13 +101,15 @@ export function ArrivalScreen() {
         <Label>Finalidade</Label>
 
         <Description>{historic?.description}</Description>
+      </ArrivalContent>
 
+      {historic?.status === 'departure' && (
         <Footer>
           <ButtonIcon icon={X} onPress={handleRemoveVehicleUsage} />
 
           <Button title="Registrar Chegada" onPress={handleArrivalRegister} />
         </Footer>
-      </ArrivalContent>
+      )}
     </ArrivalContainer>
   );
 }
