@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import { Alert } from 'react-native';
 
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -18,17 +20,21 @@ import { ButtonIcon } from '../../components/ButtonIcon';
 import {
   ArrivalContainer,
   ArrivalContent,
+  AsyncMessage,
   Description,
   Footer,
   Label,
   LicensePlate,
 } from './styles';
+import { getLastSyncTimestamp } from '../../libs/asyncStorage/syncStorage';
 
 type IRouteParamsProps = {
   id: string;
 };
 
 export function ArrivalScreen() {
+  const [dataNotSynced, setDataNotSynced] = useState(false);
+
   const navigation = useNavigation();
   const route = useRoute();
   const { id: vehicleId } = route.params as IRouteParamsProps;
@@ -89,6 +95,12 @@ export function ArrivalScreen() {
     }
   }
 
+  useEffect(() => {
+    getLastSyncTimestamp().then((lastSync) =>
+      setDataNotSynced(historic!.updated_at.getTime() > lastSync),
+    );
+  }, []);
+
   return (
     <ArrivalContainer>
       <Header title={title} />
@@ -109,6 +121,13 @@ export function ArrivalScreen() {
 
           <Button title="Registrar Chegada" onPress={handleArrivalRegister} />
         </Footer>
+      )}
+
+      {dataNotSynced && (
+        <AsyncMessage>
+          Sincronização da{' '}
+          {historic?.status === 'departure' ? 'partida' : 'chegada'} pendente
+        </AsyncMessage>
       )}
     </ArrivalContainer>
   );

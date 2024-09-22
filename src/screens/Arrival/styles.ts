@@ -45,3 +45,15 @@ export const Footer = styled('View', {
 
   padding: 32,
 });
+
+export const AsyncMessage = styled('Text', {
+  flex: 1,
+
+  fontFamily: '$REGULAR',
+  fontSize: '$SM',
+  color: '$GRAY_300',
+
+  textAlign: 'center',
+
+  margin: 32,
+});
