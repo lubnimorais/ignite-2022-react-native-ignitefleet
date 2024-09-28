@@ -1,10 +1,17 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Alert, ScrollView, TextInput } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+import {
+  LocationAccuracy,
+  LocationSubscription,
+  useForegroundPermissions,
+  watchPositionAsync,
+} from 'expo-location';
 
 import { useUser } from '@realm/react';
 
@@ -19,7 +26,7 @@ import { Header } from '../../components/Header';
 import { LicensePlateInput } from '../../components/LicensePlateInput';
 import { TextAreaInput } from '../../components/TextAreaInput';
 
-import { DepartureContainer, DepartureContent } from './styles';
+import { DepartureContainer, DepartureContent, Message } from './styles';
 
 export function DepartureScreen() {
   const [description, setDescription] = useState('');
@@ -28,6 +35,14 @@ export function DepartureScreen() {
 
   const descriptionRef = useRef<TextInput>(null);
   const licensePlateRef = useRef<TextInput>(null);
+
+  // LOCATION
+  /**
+   * PRIMEIRA POSIÇÃO É O UM ESTADO COM O STATUS DA PERMISSÃO
+   * SEGUNDA POSIÇÃO É A FUNÇÃO PARA SOLICITAR A PERMISSÃO
+   */
+  const [locationForegroundPermission, requestForegroundPermission] =
+    useForegroundPermissions();
 
   const realm = useRealm();
   const user = useUser();
@@ -76,6 +91,53 @@ export function DepartureScreen() {
 
       setIsRegistering(false);
     }
+  }
+
+  useEffect(() => {
+    requestForegroundPermission();
+  }, []);
+
+  useEffect(() => {
+    if (!locationForegroundPermission?.granted) {
+      return;
+    }
+
+    let subscription: LocationSubscription;
+
+    /**
+     * PRIMEIRA POSIÇÃO SÃO AS CONFIGURAÇÕES
+     * SEGUNDA POSIÇÃO UMA FUNÇÃO QUE CONSEGUIMOS RECUPERAR
+     * A LOCALIZAÇÃO
+     */
+    watchPositionAsync(
+      {
+        // NÍVEL DE PRECISÃO DA LOCALIZAÇÃO
+        accuracy: LocationAccuracy.High,
+        // INTERVALO PARA ATUALIZAÇÃO
+        timeInterval: 1000,
+      },
+      (location) => {
+        console.log(location);
+      },
+    ).then((response) => {
+      subscription = response;
+    });
+
+    return () => subscription.remove();
+  }, [locationForegroundPermission]);
+
+  if (!locationForegroundPermission?.granted) {
+    return (
+      <DepartureContainer>
+        <Header title="Saída" />
+
+        <Message>
+          Você precisa permitir que o aplicativo tenha acesso a localização para
+          utilizar essa funcionalidade. Por favor acesse as configurações do seu
+          dispositivo para conceder essa permissão ao aplicativo.
+        </Message>
+      </DepartureContainer>
+    );
   }
 
   return (
