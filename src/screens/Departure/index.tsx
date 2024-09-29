@@ -13,6 +13,8 @@ import {
   watchPositionAsync,
 } from 'expo-location';
 
+import { Car } from 'phosphor-react-native';
+
 import { useUser } from '@realm/react';
 
 import { useRealm } from '../../libs/realm';
@@ -20,11 +22,14 @@ import { useRealm } from '../../libs/realm';
 import { Historic } from '../../libs/realm/schemas/Historic';
 
 import { licensePlateValidate } from '../../utils/licensePlateValidate';
+import { getAddressLocation } from '../../utils/getAddressLocation';
 
 import { Button } from '../../components/Button';
 import { Header } from '../../components/Header';
 import { LicensePlateInput } from '../../components/LicensePlateInput';
 import { TextAreaInput } from '../../components/TextAreaInput';
+import { Loading } from '../../components/Loading';
+import { LocationInfo } from '../../components/LocationInfo';
 
 import { DepartureContainer, DepartureContent, Message } from './styles';
 
@@ -32,6 +37,8 @@ export function DepartureScreen() {
   const [description, setDescription] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [currentAddress, setCurrentAddress] = useState<string | null>(null);
 
   const descriptionRef = useRef<TextInput>(null);
   const licensePlateRef = useRef<TextInput>(null);
@@ -117,13 +124,25 @@ export function DepartureScreen() {
         timeInterval: 1000,
       },
       (location) => {
-        console.log(location);
+        getAddressLocation(location.coords)
+          .then((address) => {
+            if (address) {
+              setCurrentAddress(address);
+            }
+          })
+          .finally(() => {
+            setIsLoadingLocation(false);
+          });
       },
     ).then((response) => {
       subscription = response;
     });
 
-    return () => subscription.remove();
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
   }, [locationForegroundPermission]);
 
   if (!locationForegroundPermission?.granted) {
@@ -140,6 +159,10 @@ export function DepartureScreen() {
     );
   }
 
+  if (isLoadingLocation) {
+    return <Loading />;
+  }
+
   return (
     <DepartureContainer>
       <Header title="Saída" />
@@ -147,6 +170,14 @@ export function DepartureScreen() {
       <KeyboardAwareScrollView extraHeight={100}>
         <ScrollView>
           <DepartureContent>
+            {currentAddress && (
+              <LocationInfo
+                icon={Car}
+                label="Localização atual"
+                description={currentAddress}
+              />
+            )}
+
             <LicensePlateInput
               ref={licensePlateRef}
               label="Placa do veículo"
