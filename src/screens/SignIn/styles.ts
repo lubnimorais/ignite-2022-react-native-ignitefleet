@@ -1,4 +1,4 @@
-import { styled } from "../../theme/stitches.config";
+import { styled } from '../../theme/stitches.config';
 
 export const SignInContainer = styled('ImageBackground', {
   flex: 1,
@@ -6,14 +6,14 @@ export const SignInContainer = styled('ImageBackground', {
 
   backgroundColor: '$GRAY_800',
 
-  padding: 52
+  padding: 52,
 });
 
 export const SignInTitle = styled('Text', {
   fontFamily: '$BOLD',
   fontSize: '$XXXL',
   color: '$BRAND_LIGHT',
-  textAlign: 'center'
+  textAlign: 'center',
 });
 
 export const SignInSlogan = styled('Text', {
@@ -22,5 +22,5 @@ export const SignInSlogan = styled('Text', {
   color: '$GRAY_100',
   textAlign: 'center',
 
-  marginBottom: 32
+  marginBottom: 32,
 });

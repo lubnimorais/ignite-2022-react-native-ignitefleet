@@ -11,6 +11,7 @@ import {
   LocationSubscription,
   useForegroundPermissions,
   watchPositionAsync,
+  LocationObjectCoords,
 } from 'expo-location';
 
 import { Car } from 'phosphor-react-native';
@@ -30,6 +31,7 @@ import { LicensePlateInput } from '../../components/LicensePlateInput';
 import { TextAreaInput } from '../../components/TextAreaInput';
 import { Loading } from '../../components/Loading';
 import { LocationInfo } from '../../components/LocationInfo';
+import { Map } from '../../components/Map';
 
 import { DepartureContainer, DepartureContent, Message } from './styles';
 
@@ -39,6 +41,8 @@ export function DepartureScreen() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
+  const [currentCoords, setCurrentCoords] =
+    useState<LocationObjectCoords | null>(null);
 
   const descriptionRef = useRef<TextInput>(null);
   const licensePlateRef = useRef<TextInput>(null);
@@ -124,6 +128,8 @@ export function DepartureScreen() {
         timeInterval: 1000,
       },
       (location) => {
+        setCurrentCoords(location.coords);
+
         getAddressLocation(location.coords)
           .then((address) => {
             if (address) {
@@ -169,6 +175,8 @@ export function DepartureScreen() {
 
       <KeyboardAwareScrollView extraHeight={100}>
         <ScrollView>
+          {currentCoords && <Map coordinates={[currentCoords]} />}
+
           <DepartureContent>
             {currentAddress && (
               <LocationInfo
