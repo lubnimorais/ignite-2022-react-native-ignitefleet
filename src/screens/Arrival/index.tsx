@@ -4,6 +4,8 @@ import { Alert } from 'react-native';
 
 import { useNavigation, useRoute } from '@react-navigation/native';
 
+import { LatLng } from 'react-native-maps';
+
 import { X } from 'phosphor-react-native';
 
 import { BSON } from 'realm';
@@ -13,7 +15,13 @@ import { useRealm } from '@realm/react';
 import { useObject } from '../../libs/realm';
 import { Historic } from '../../libs/realm/schemas/Historic';
 
+import { getLastSyncTimestamp } from '../../libs/asyncStorage/syncStorage';
+import { getStorageLocations } from '../../libs/asyncStorage/locationStorage';
+
+import { stopLocationTask } from '../../tasks/backgroundLocationTask';
+
 import { Header } from '../../components/Header';
+import { Map } from '../../components/Map';
 import { Button } from '../../components/Button';
 import { ButtonIcon } from '../../components/ButtonIcon';
 
@@ -26,7 +34,6 @@ import {
   Label,
   LicensePlate,
 } from './styles';
-import { getLastSyncTimestamp } from '../../libs/asyncStorage/syncStorage';
 
 type IRouteParamsProps = {
   id: string;
@@ -34,6 +41,7 @@ type IRouteParamsProps = {
 
 export function ArrivalScreen() {
   const [dataNotSynced, setDataNotSynced] = useState(false);
+  const [coordinates, setCoordinates] = useState<LatLng[]>([]);
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -48,10 +56,12 @@ export function ArrivalScreen() {
 
   const title = historic?.status === 'departure' ? 'Chegada' : 'Detalhes';
 
-  function removeVehicleUsage() {
+  async function removeVehicleUsage() {
     realm.write(() => {
       realm.delete(historic);
     });
+
+    await stopLocationTask();
 
     navigation.goBack();
   }
@@ -72,7 +82,7 @@ export function ArrivalScreen() {
     ]);
   }
 
-  function handleArrivalRegister() {
+  async function handleArrivalRegister() {
     try {
       if (!historic) {
         return Alert.alert(
@@ -86,6 +96,9 @@ export function ArrivalScreen() {
         historic.updated_at = new Date();
       });
 
+      // PARANDO A TAREFA DE LOCALIZAÇÃO EM BACKGROUND
+      await stopLocationTask();
+
       Alert.alert('Chegada', 'Chegada realizada com sucesso!');
 
       navigation.goBack();
@@ -95,15 +108,25 @@ export function ArrivalScreen() {
     }
   }
 
+  async function getLocationsInfo() {
+    const lastSync = await getLastSyncTimestamp();
+    const updatedAt = historic!.updated_at.getTime();
+
+    setDataNotSynced(updatedAt > lastSync);
+
+    const locationsStorage = await getStorageLocations();
+    setCoordinates(locationsStorage);
+  }
+
   useEffect(() => {
-    getLastSyncTimestamp().then((lastSync) =>
-      setDataNotSynced(historic!.updated_at.getTime() > lastSync),
-    );
-  }, []);
+    getLocationsInfo();
+  }, [historic]);
 
   return (
     <ArrivalContainer>
       <Header title={title} />
+
+      {coordinates.length > 0 && <Map coordinates={coordinates} />}
 
       <ArrivalContent>
         <Label>Placa do veículo</Label>

@@ -12,6 +12,7 @@ import {
   useForegroundPermissions,
   watchPositionAsync,
   LocationObjectCoords,
+  requestBackgroundPermissionsAsync,
 } from 'expo-location';
 
 import { Car } from 'phosphor-react-native';
@@ -24,6 +25,8 @@ import { Historic } from '../../libs/realm/schemas/Historic';
 
 import { licensePlateValidate } from '../../utils/licensePlateValidate';
 import { getAddressLocation } from '../../utils/getAddressLocation';
+
+import { startLocationTask } from '../../tasks/backgroundLocationTask';
 
 import { Button } from '../../components/Button';
 import { Header } from '../../components/Header';
@@ -51,6 +54,8 @@ export function DepartureScreen() {
   /**
    * PRIMEIRA POSIÇÃO É O UM ESTADO COM O STATUS DA PERMISSÃO
    * SEGUNDA POSIÇÃO É A FUNÇÃO PARA SOLICITAR A PERMISSÃO
+   *
+   * SOLICITA A PERMISSÃO EM PRIMEIRO PLANO
    */
   const [locationForegroundPermission, requestForegroundPermission] =
     useForegroundPermissions();
@@ -59,7 +64,7 @@ export function DepartureScreen() {
   const user = useUser();
   const navigation = useNavigation();
 
-  function handleDepartureRegister() {
+  async function handleDepartureRegister() {
     try {
       if (!licensePlateValidate(licensePlate)) {
         licensePlateRef.current?.focus();
@@ -79,7 +84,32 @@ export function DepartureScreen() {
         );
       }
 
+      // VALIDANDO AS COORDENADAS
+      if (!currentCoords?.latitude && !currentCoords?.longitude) {
+        return Alert.alert(
+          'Localização',
+          'Não foi possível obter a localização atual. Tente novamente!',
+        );
+      }
+
       setIsRegistering(true);
+
+      /**
+       * SOLICITANDO A PERMISSÃO EM BACKGROUND (SEGUNDO PLANO)
+       */
+      const backgroundPermissions = await requestBackgroundPermissionsAsync();
+
+      if (!backgroundPermissions.granted) {
+        setIsRegistering(false);
+
+        return Alert.alert(
+          'Localização',
+          'É necessário permitir que o App tenha acesso a localização em segundo plano. Acesse as configurações do dispositivo e habilite "Permitir o tempo todo".',
+        );
+      }
+
+      // INICIANDO A TAREFA DE LOCALIZAÇÃO EM BACKGROUND
+      await startLocationTask();
 
       realm.write(() => {
         realm.create(

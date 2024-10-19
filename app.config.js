@@ -1,11 +1,11 @@
 // NA AULA
-// import * as dotenv from 'dotenv'
-
-// dotenv.config()
-
-import * as dotenv from 'react-native-dotenv'
+import * as dotenv from 'dotenv'
 
 dotenv.config()
+
+// import * as dotenv from 'react-native-dotenv'
+
+// dotenv.config()
 
 module.exports = {
   "expo": {
@@ -25,6 +25,9 @@ module.exports = {
       "bundleIdentifier": "com.lubnidev.ignitefleet",
       "config": {
         "googleMapsApiKey": process.env.GOOGLE_MAPS_API_KEY
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["location"]
       }
     },
     "android": {
@@ -37,7 +40,12 @@ module.exports = {
         "googleMaps": {
           "apiKey": process.env.GOOGLE_MAPS_API_KEY
         }
-      }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

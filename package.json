@@ -35,7 +35,8 @@
     "realm": "^12.13.0",
     "stitches-native": "^0.4.0",
     "expo-location": "~17.0.1",
-    "react-native-maps": "1.14.0"
+    "react-native-maps": "1.14.0",
+    "expo-task-manager": "~11.8.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
