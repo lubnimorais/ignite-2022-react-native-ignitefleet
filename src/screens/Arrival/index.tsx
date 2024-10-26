@@ -40,6 +40,7 @@ import {
   Label,
   LicensePlate,
 } from './styles';
+import { Loading } from '../../components/Loading';
 
 type IRouteParamsProps = {
   id: string;
@@ -52,6 +53,7 @@ export function ArrivalScreen() {
     {} as ILocationInfo,
   );
   const [arrival, setArrival] = useState<ILocationInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -158,11 +160,17 @@ export function ArrivalScreen() {
         ),
       });
     }
+
+    setIsLoading(false);
   }
 
   useEffect(() => {
     getLocationsInfo();
   }, [historic]);
+
+  if (isLoading) {
+    <Loading />;
+  }
 
   return (
     <ArrivalContainer>

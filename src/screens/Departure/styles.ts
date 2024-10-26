@@ -16,11 +16,18 @@ export const DepartureContent = styled('View', {
   marginTop: 16,
 });
 
+export const MessageContent = styled('View', {
+  flex: 1,
+  justifyContent: 'center',
+
+  padding: 24,
+});
+
 export const Message = styled('Text', {
   fontFamily: '$REGULAR',
   fontSize: '$MD',
   color: '$WHITE',
   textAlign: 'center',
 
-  margin: 24,
+  marginBottom: 44,
 });

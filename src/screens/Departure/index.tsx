@@ -25,6 +25,7 @@ import { Historic } from '../../libs/realm/schemas/Historic';
 
 import { licensePlateValidate } from '../../utils/licensePlateValidate';
 import { getAddressLocation } from '../../utils/getAddressLocation';
+import { openSettings } from '../../utils/openSettings';
 
 import { startLocationTask } from '../../tasks/backgroundLocationTask';
 
@@ -36,7 +37,12 @@ import { Loading } from '../../components/Loading';
 import { LocationInfo } from '../../components/LocationInfo';
 import { Map } from '../../components/Map';
 
-import { DepartureContainer, DepartureContent, Message } from './styles';
+import {
+  DepartureContainer,
+  DepartureContent,
+  Message,
+  MessageContent,
+} from './styles';
 
 export function DepartureScreen() {
   const [description, setDescription] = useState('');
@@ -105,6 +111,12 @@ export function DepartureScreen() {
         return Alert.alert(
           'Localização',
           'É necessário permitir que o App tenha acesso a localização em segundo plano. Acesse as configurações do dispositivo e habilite "Permitir o tempo todo".',
+          [
+            {
+              text: 'Abrir configurações',
+              onPress: openSettings,
+            },
+          ],
         );
       }
 
@@ -193,11 +205,15 @@ export function DepartureScreen() {
       <DepartureContainer>
         <Header title="Saída" />
 
-        <Message>
-          Você precisa permitir que o aplicativo tenha acesso a localização para
-          utilizar essa funcionalidade. Por favor acesse as configurações do seu
-          dispositivo para conceder essa permissão ao aplicativo.
-        </Message>
+        <MessageContent>
+          <Message>
+            Você precisa permitir que o aplicativo tenha acesso a localização
+            para utilizar essa funcionalidade. Por favor acesse as configurações
+            do seu dispositivo para conceder essa permissão ao aplicativo.
+          </Message>
+
+          <Button title="Abrir Configurações" onPress={openSettings} />
+        </MessageContent>
       </DepartureContainer>
     );
   }
