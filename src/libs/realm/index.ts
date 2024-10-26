@@ -1,6 +1,7 @@
 import { Realm, createRealmContext } from '@realm/react';
 
 import { Historic } from './schemas/Historic';
+import { Coords } from './schemas/Coords';
 
 /**
  * ESSE COMPORTAMENTO SIGNIFICA QUE PARA NOVOS
@@ -28,5 +29,6 @@ export const {
   useQuery, // IMPLEMENTAR CONSULTAS NO BANCO
   useObject, // OBTER UM OBJETO ESPECÍFICO
 } = createRealmContext({
-  schema: [Historic],
+  schema: [Historic, Coords],
+  schemaVersion: 1,
 });
